@@ -1,0 +1,20 @@
+ifeq ($(USE_STATIC), y)
+PIC=
+else
+PIC=-fPIC
+endif
+
+ifeq ($(USE_PROFILE), y)
+PROFILE=-pg
+endif
+
+ifeq ($(USE_DEBUG), n)
+DEBUG=
+else
+DEBUG=-g
+endif
+
+
+
+CC=gcc
+CXX=g++
