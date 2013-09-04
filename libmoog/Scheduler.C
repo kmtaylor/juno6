@@ -240,8 +240,15 @@ void Scheduler::run()
 	}
 
 	/* this is so we can run even without a DSPOutput object */
-	if (!dsp && needListSync > 0)
-	    pthread_cond_wait(&listOpCompleteCond, &beginListOpMutex);
+	if (!dsp) {
+	    pthread_mutex_lock(&syncListMutex);
+	    if (needListSync > 0) {
+		pthread_mutex_unlock(&syncListMutex);
+		pthread_cond_wait(&listOpCompleteCond, &beginListOpMutex);
+	    } else {
+		pthread_mutex_unlock(&syncListMutex);
+	    }
+	}
     }
 }
 
@@ -255,8 +262,13 @@ void Scheduler::run()
 
 void dataWrittenCallback()
 {
-    if (needListSync > 0)
+    pthread_mutex_lock(&syncListMutex);
+    if (needListSync > 0) {
+	pthread_mutex_unlock(&syncListMutex);
 	pthread_cond_wait(&listOpCompleteCond, &beginListOpMutex);
+    } else {
+	pthread_mutex_unlock(&syncListMutex);
+    }
 }
 
 
