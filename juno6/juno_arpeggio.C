@@ -56,17 +56,16 @@ void JunoArpeggio_rateChanged(MoogObject *o, double data, long userData)
 
 JunoArpeggio::JunoArpeggio(JunoControl *jc,int voices)
 {
-printf("creating arpeggio for %d voices\n",voices);
-NUM_VOICES = voices;
+    NUM_VOICES = voices;
     //addInput("", JunoArpeggio_Changed, 0, 1);
     //PATCH(jc, "", this, "");
 
     INIT_LIST_HEAD(&notes);
-   #ifndef POSIX
+#ifndef POSIX
     InitializeCriticalSection(&listMutex);
-   #else
+#else
     pthread_mutex_init(&listMutex, NULL);
-   #endif
+#endif
     pos = 0.0;
     velocity = .001;
     currentNote = NULL;

@@ -26,11 +26,14 @@ static void            dataWrittenCallback();
 static int             set_realtime_priority();
 
 
-static volatile int    needListSync = 0;
-static struct list_head      *currentListIter;
-static pthread_mutex_t beginListOpMutex=PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t  listOpCompleteCond =(pthread_cond_t) PTHREAD_COND_INITIALIZER;
-static pthread_cond_t  resumeCondition = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
+static volatile int needListSync = 0;
+static struct list_head *currentListIter;
+static pthread_mutex_t beginListOpMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t syncListMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  listOpCompleteCond =
+			    (pthread_cond_t) PTHREAD_COND_INITIALIZER;
+static pthread_cond_t  resumeCondition = 
+			    (pthread_cond_t) PTHREAD_COND_INITIALIZER;
 
 DSPOutput *Scheduler::dsp = NULL;
 pthread_t  Scheduler::tickThread;
@@ -70,11 +73,12 @@ void Scheduler::setSampleControlRatio(int r)
 void Scheduler::safeListOp(struct list_head *node, 
 			    struct list_head *list, bool add)
 {
-    needListSync++;
-
     /* As per below, if the tick() thread calls safeListOp, it will deadlock */
-    if (pthread_self() == tickThread)
+    if (pthread_self() != tickThread)
     {
+	pthread_mutex_lock(&syncListMutex);
+	needListSync++;
+	pthread_mutex_unlock(&syncListMutex);
 	pthread_mutex_lock(&beginListOpMutex);
     }
 
@@ -122,9 +126,13 @@ void Scheduler::safeListOp(struct list_head *node,
     }
 
  out:
-    needListSync--;
-    pthread_cond_signal(&listOpCompleteCond);
-    pthread_mutex_unlock(&beginListOpMutex);
+    if (pthread_self() != tickThread) {
+	pthread_mutex_lock(&syncListMutex);
+	needListSync--;
+	pthread_mutex_unlock(&syncListMutex);
+	pthread_cond_signal(&listOpCompleteCond);
+	pthread_mutex_unlock(&beginListOpMutex);
+    }
 }
 
 void Scheduler::scheduleControlRate(GoObject *obj, bool schedule)
@@ -164,7 +172,7 @@ void Scheduler::suspend()
 
 void Scheduler::resume()
 {
-   pthread_mutex_lock(&beginListOpMutex);
+    pthread_mutex_lock(&beginListOpMutex);
     suspended = 0;
     pthread_cond_signal(&resumeCondition);
     pthread_mutex_unlock(&beginListOpMutex);

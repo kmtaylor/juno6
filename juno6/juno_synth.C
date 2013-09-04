@@ -113,18 +113,15 @@ initSynth( JunoControl* _junoControl,
     p = settings->getString("devices", "FragSize");
     if (strlen(p))
 	fragSize = atoi(p);
-puts("new dsp"); 
     dsp = new DSPOutput( settings->getString( "devices", "dsp-output" ),
 			 SAMPLE_RATE_44k,
 			 ( stereo ) ? 2 : 1,
 			 numFrags,
 			 fragSize);
     //FIXME: we have to hold on to the junoControl pointer... sloppy
-puts("copy control");
     junoControl = _junoControl;
-puts("new lfo");
+
     lfo = new JunoLfo(junoControl,numVoices);
-     puts("new arpeggio"); 
     
     arpeggio = new JunoArpeggio(junoControl,numVoices);
     
