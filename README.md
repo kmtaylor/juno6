@@ -1,7 +1,7 @@
 juno6
 =====
 
-![Image](juno6/juno_background.xpm?raw=true)
+![Image](Screenshot.png?raw=true)
 	
 Juno 6 Emulator (based on the Ultramaster sources)
 
