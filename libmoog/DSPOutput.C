@@ -102,12 +102,16 @@ void DSPOutput::sampleGo()
     int moved;
 
     for (int i = 0; i < dsp->channels; i++)
-	{
+    {
+#if 1 /* Clip instead of wrap */
 	int b = (int)((*inSig[i] * *inAmp[i]) * 32768);
-	if (b>32767)b=32767;
-	if (b<-32767)b=-32767;
-	*dsp->writeDataPtr++ = b;//(short)((*inSig[i] * *inAmp[i]) * 32768); 
-	}
+	if (b > 32767) b = 32767;
+	if (b < -32767) b = -32767;
+	*dsp->writeDataPtr++ = b;
+#else
+	*dsp->writeDataPtr++ = (short)((*inSig[i] * *inAmp[i]) * 32768);
+#endif
+    }
 
     moved = dsp->checkFlushBuffers();
 

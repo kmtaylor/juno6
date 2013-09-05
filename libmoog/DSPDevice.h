@@ -83,35 +83,34 @@ class DSPDevice
 	    retval |= DSP_WRITE;
 	}
 #else
-if (writeDataPtr>=writeBuffEnd)
+	if (writeDataPtr>=writeBuffEnd)
 	{
-	int tmpFragSize = fragSize;
-	int t;
+	    int tmpFragSize = fragSize;
+	    int t;
 	
-	int pos=0;
-	//first type
-	while((t = Play(writeBuffBase+pos,tmpFragSize))<tmpFragSize)
-	{
-	tmpFragSize = tmpFragSize - t;
-	pos+=t; 
+	    int pos=0;
+	    //first type
+	    while((t = Play(writeBuffBase+pos,tmpFragSize))<tmpFragSize)
+	    {
+		tmpFragSize = tmpFragSize - t;
+		pos+=t; 
+	    }
+	    //printf("%d written\n",t);
+	    writeDataPtr = writeBuffBase;
+	
+	
+	    /*t = Play(writeBuffBase,fragSize);
+	    if (t<fragSize)
+	    {
+		memcpy(writeBuffBase,writeBuffBase+t,fragSize-t);
+		writeDataPtr=writeBuffBase+t;
+	    } else
+	    {
+		writeDataPtr=writeBuffBase;	
+	    }
+	    */ 	
+	    retval|=DSP_WRITE;	
 	}
-	//printf("%d written\n",t);
-	writeDataPtr = writeBuffBase;
-	
-	
-	/*t = Play(writeBuffBase,fragSize);
-	if (t<fragSize)
-	  {
-	  memcpy(writeBuffBase,writeBuffBase+t,fragSize-t);
-	  writeDataPtr=writeBuffBase+t;
-	  }else
-	  {
-          writeDataPtr=writeBuffBase;	
-          }
-	  */ 	
-	retval|=DSP_WRITE;	
-	}
-
 #endif
 
 	return retval;
