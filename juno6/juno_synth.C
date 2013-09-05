@@ -218,11 +218,6 @@ initSynth( JunoControl* _junoControl,
     scope = new Scope();
     PATCH( chorus, "sig", scope, "sig" );
 
-    if ( stereo )
-    {
-	PATCH( chorus2, "sig", scope, "sig2" );
-    }
-
     /* the Balance in the voices needs signal to calibrate, so start
      * the oscillators with an arbitrary frequency - they run forever
      */

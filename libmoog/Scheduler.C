@@ -23,8 +23,6 @@
 #include "DSPOutput.h"
 
 static void            dataWrittenCallback();
-static int             set_realtime_priority();
-
 
 static volatile int needListSync = 0;
 static struct list_head *currentListIter;
@@ -191,10 +189,12 @@ void Scheduler::run()
     GoObject  *obj;
 
 
+#ifdef REALTIME
     debug(DEBUG_APPMSG1, "[Attempting to set process priority, expect error if not root]");
 
     if (set_realtime_priority() < 0)
 	debug(DEBUG_SYSERROR, "Problem with set_realtime_priority");
+#endif
   
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     pthread_mutex_lock(&beginListOpMutex);
@@ -274,17 +274,18 @@ void dataWrittenCallback()
 
 /* this routine taken from Benno Sonner, sbenno@gardena.net */
 
-int set_realtime_priority()
+int Scheduler::set_realtime_priority()
 {
     struct sched_param schp;
 
     memset(&schp, 0, sizeof(schp));
-    schp.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    schp.sched_priority = sched_get_priority_min(SCHED_FIFO);
     
-    if (sched_setparam(0,&schp) != 0) 
+    if (sched_setscheduler(0, SCHED_FIFO, &schp) != 0) 
 	return -1;
     
+    if (pthread_setschedparam(Scheduler::tickThread, SCHED_FIFO, &schp) != 0)
+	return -1;
+
     return 0;
 }
-
-

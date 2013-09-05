@@ -54,6 +54,8 @@ class Scheduler
     static void      safeListOp(struct list_head *node,
 				struct list_head *list, bool add);
     static void      run();
+    
+    static int	     set_realtime_priority();
 
  public:
     static void      Init();
